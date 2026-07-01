@@ -1,0 +1,33 @@
+[9]タイムアップ判定
+[8:6]ゲーム状態
+(
+    [8]手番
+    [7]駒選択/移動先選択
+    [6]仮決定/決定
+)
+[5:3]Y座標
+[2:0]X座標
+assign for_sw = {win_flag, state, cur_y, cur_x};
+
+
+## winCheckの処理
+(1) timeup == 1: 時間切れ
+ゲームオーバー、そのときのturnの負け
+
+## handleCommandの処理
+(1) select == 0 && enter == 0: 駒を選択中(仮決定状態)
+board.cursorPosを(x, y)で更新
+
+(2) select == 0 && enter == 1: 駒を選択中(決定状態)
+fromの値を(x, y)で更新
+Hardwareに選択した駒が有効かを返す
+⇒あるいは、ソフトウェア側でselectを1にする
+有効：自分の駒である、移動先が存在する
+
+(3) select == 1 && enter == 0: 移動先を選択中(仮決定状態)
+board.cursorPosを(x, y)で更新
+
+(4) select == 1 && enter == 1: 移動先を選択中(決定状態)
+その時の(x, y)をtoとして、board.movePiece(from, to, &board)を呼び出す
+Hardwareにその移動が有効かを返す
+⇒あるいは、ソフトウェア側でselectを0にしてturnを変更

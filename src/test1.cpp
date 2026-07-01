@@ -1,12 +1,13 @@
 #include <iostream>
 #include <string>
-#include "components.h"
+#include "Game.h"
+using namespace std;
+
 
 int main() {
     Board board;
     ConsoleOutput output;
     string str;
-    cout << "cmd: e2 e4" << endl;
 
     while(1){
         cout << "cmd: ";
@@ -24,7 +25,7 @@ int main() {
         } else {
             cout << "Move failed" << endl;
         }
-        output.drawBoard(board);
+        output.drawBoard(board, Position(1, 1));
     }
 
     return 0;
