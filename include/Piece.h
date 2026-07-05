@@ -16,9 +16,12 @@ public:
 
     virtual bool onMove(Position from, Position to) = 0;
     virtual bool canMove(Position from, Position to, const Board& board) const = 0;
+    bool hasMoved() const { return moved; }
+    void setMoved() { this->moved = true; }
 private:
     bool color; // true for white, false for black
     char symbol;
+    bool moved;
 };
 
 class Pawn : public Piece {

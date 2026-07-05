@@ -1,29 +1,28 @@
 #ifndef _UI_H_
 #define _UI_H_
 
-#include "Core.h"
 #include "Board.h"
-#include <iostream>
-#include <cstdint>
+#include "Core.h"
 
-class HardwareInput {
-public:
-    MoveCommand getMove();
-private:
-    int fd;
-    MoveCommand decodeCommand(uint32_t data);
-};
-
-class ConsoleInput {
-public:
-    MoveCommand getMove();
-};
+#include <string>
+#include <vector>
 
 class ConsoleOutput {
 public:
-    void drawBoard(const Board& board, Position cursorPos);
+    void drawBoard(
+        const Board& board,
+        Position cursorPos,
+        const MoveCommand& cmd,
+        bool hasSelectedPiece,
+        Position selectedPos,
+        const std::string& message
+    );
+
     void drawResult(bool winner);
+
+private:
+    std::string positionToChessNotation(Position pos) const;
+    std::string capturedPiecesToString(const std::vector<char>& pieces) const;
 };
 
-
-#endif // _UI_H_
+#endif

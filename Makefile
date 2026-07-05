@@ -1,23 +1,116 @@
-# コンパイラとコンパイルオプション
-CXX = g++
-CXXFLAGS = -Iinclude -Wall -Wextra -std=c++17
+.RECIPEPREFIX := >
 
-# 生成する実行ファイル名
+# ============================================================
+# Target
+# ============================================================
 TARGET = chess_app
 
-# コンパイルするソースファイルのリスト
-SRCS = src/main.cpp src/UI.cpp src/Game.cpp src/Piece.cpp src/Core.cpp src/Board.cpp
-# SRCS = src/test1.cpp src/UI.cpp src/Game.cpp src/Piece.cpp src/Core.cpp src/Board.cpp
+# ============================================================
+# Build mode
+#   make MODE=pc
+#   make MODE=arm
+# ============================================================
+MODE ?= arm
 
+# ============================================================
+# Directories
+# ============================================================
+SRC_DIR   = src
+INC_DIR   = include
+BUILD_DIR = build
 
-# デフォルトのターゲット（makeと打った時に実行される）
+# ============================================================
+# Common source files
+# ============================================================
+COMMON_SRCS = \
+    $(SRC_DIR)/main.cpp \
+    $(SRC_DIR)/UI.cpp \
+    $(SRC_DIR)/Game.cpp \
+    $(SRC_DIR)/Piece.cpp \
+    $(SRC_DIR)/Core.cpp \
+    $(SRC_DIR)/Board.cpp
+
+# ============================================================
+# Mode settings
+# ============================================================
+ifeq ($(MODE),arm)
+
+CROSS_COMPILE = arm-linux-gnueabihf-
+CXX = $(CROSS_COMPILE)g++
+
+# ARMビルド用のフラグにハードウェアライブラリのパスとマクロを追加
+CXXFLAGS_EXTRA = \
+    -DUSE_HARDWARE_INPUT \
+    -Dsoc_cv_av \
+    -I${SOCEDS_DEST_ROOT}/ip/altera/hps/altera_hps/hwlib/include \
+    -I${SOCEDS_DEST_ROOT}/ip/altera/hps/altera_hps/hwlib/include/soc_cv_av
+
+LDFLAGS_EXTRA = -static
+
+SRCS = \
+    $(COMMON_SRCS) \
+    $(SRC_DIR)/HardwareInput.cpp
+
+else ifeq ($(MODE),pc)
+
+CXX = g++
+
+CXXFLAGS_EXTRA = \
+    -DUSE_CONSOLE_INPUT
+
+LDFLAGS_EXTRA =
+
+SRCS = \
+    $(COMMON_SRCS) \
+    $(SRC_DIR)/ConsoleInput.cpp
+
+else
+$(error MODE must be arm or pc)
+endif
+
+# ============================================================
+# Flags
+# ============================================================
+CXXFLAGS = \
+    -I$(INC_DIR) \
+    -Wall \
+    -Wextra \
+    -std=c++17 \
+    -g \
+    $(CXXFLAGS_EXTRA)
+
+LDFLAGS = \
+    -g \
+    -Wall \
+    $(LDFLAGS_EXTRA)
+
+# ============================================================
+# Object files
+# ============================================================
+OBJS = $(SRCS:$(SRC_DIR)/%.cpp=$(BUILD_DIR)/%.o)
+
+# ============================================================
+# Default target
+# ============================================================
 all: $(TARGET)
 
-# 実行ファイルを生成するためのルール
-$(TARGET): $(SRCS)
-	$(CXX) $(CXXFLAGS) -o $@ $^
+# ============================================================
+# Link
+# ============================================================
+$(TARGET): $(OBJS)
+>$(CXX) $(LDFLAGS) $^ -o $@
 
-# クリーンアップ（生成物を削除する）
-# Windows環境とLinux(WSL)環境の両方を考慮
+# ============================================================
+# Compile
+# ============================================================
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
+>@mkdir -p $(BUILD_DIR)
+>$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# ============================================================
+# Clean
+# ============================================================
+.PHONY: clean
+
 clean:
-	-rm -f $(TARGET) $(TARGET).exe
+>rm -rf $(BUILD_DIR) $(TARGET) $(TARGET).exe *.o *~

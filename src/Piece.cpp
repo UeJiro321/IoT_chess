@@ -5,10 +5,12 @@
 Piece::Piece(){
     this->color = false;
     this->symbol = ' ';
+    this->moved = false;
 }
 Piece::Piece(char symbol, bool color){
     this->color = color;
     this->symbol = symbol;
+    this->moved = false;
 }
 bool Piece::getColor() const {
     return this->color;
@@ -42,15 +44,28 @@ bool Pawn::onMove(Position from, Position to){
 }
 bool Pawn::canMove(Position from, Position to, const Board& board) const{
     int dir = getColor() ? 1 : -1;
-    if(abs(from.getCol() - to.getCol()) == 1 && to.getRow() - from.getRow() == dir){
-        if(board.getPiece(to)->getColor() != getColor()){
+
+    const Piece* targetPiece = board.getPiece(to);
+
+    // 斜め方向のキャプチャ
+    if(abs(from.getCol() - to.getCol()) == 1 &&
+       to.getRow() - from.getRow() == dir){
+
+        if(targetPiece != nullptr &&
+           targetPiece->getColor() != getColor()){
+            return true;
+        }
+
+        return false;
+    }
+
+    // 前進先に駒があれば進めない
+    if(from.getCol() == to.getCol()){
+        if(targetPiece == nullptr){
             return true;
         }
     }
-    // 前進先に駒があれば進めない
-    if(board.getPiece(to) == nullptr){
-        return true;
-    }
+
     return false;
 }
 
@@ -217,10 +232,22 @@ bool Queen::canMove(Position from, Position to, const Board& board) const {
 }
 
 King::King(bool color) : Piece(color ? 'K' : 'k', color) {}
-bool King::onMove(Position from, Position to){
+bool King::onMove(Position from, Position to)
+{
     int rowDiff = abs(from.getRow() - to.getRow());
     int colDiff = abs(from.getCol() - to.getCol());
-    return rowDiff <= 1 && colDiff <= 1;
+
+    // 通常の1マス移動
+    if (rowDiff <= 1 && colDiff <= 1 && !(rowDiff == 0 && colDiff == 0)) {
+        return true;
+    }
+
+    // キャスリング候補
+    if (rowDiff == 0 && colDiff == 2) {
+        return true;
+    }
+
+    return false;
 }
 bool King::canMove(Position from, Position to, const Board& board) const {
     int rowDiff = abs(to.getRow() - from.getRow());

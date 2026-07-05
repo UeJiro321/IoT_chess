@@ -1,24 +1,31 @@
 #ifndef _BOARD_H_
 #define _BOARD_H_
 
-#include <vector>
+#include "Core.h"
+#include "Piece.h"
+
 #include <memory>
-#include "Core.h" 
-#include "Piece.h" 
+#include <vector>
 
 class Board {
 public:
     Board();
-    // 抽象クラスはポインタで保持する
-    // std::vector<std::unique_ptr<Piece>> white_loss;
-    // std::vector<std::unique_ptr<Piece>> black_loss;
 
-    bool movePiece(Position from, Position to);
     const Piece* getPiece(Position pos) const;
-    bool moveCursor(int dir);
-    // Position getCursorPos() const;
+    bool movePiece(Position from, Position to);
+
+    const std::vector<char>& getCapturedRedPieces() const;
+    const std::vector<char>& getCapturedBluePieces() const;
+
+    void promotePawn(Position pos);
+    bool canCastle(Position from, Position to) const;
+    bool isKingAlive(bool color) const;
+
 private:
     std::unique_ptr<Piece> square[8][8];
+
+    std::vector<char> capturedRedPieces;
+    std::vector<char> capturedBluePieces;
 };
 
 #endif // _BOARD_H_
